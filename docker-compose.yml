@@ -1,0 +1,34 @@
+version: '3.5'
+
+services:
+  traefik:
+    image: traefik:1.7
+    command:
+      - --api
+      - --docker
+      - --docker.domain=traefik.local
+      - --docker.exposedByDefault=false
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./config/traefik.toml:/traefik.toml
+      - ./config/acme.json:/acme.json
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    networks:
+      - reverse-proxy
+  whoami:
+    image: containous/whoami:latest
+    networks:
+      - reverse-proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=80"
+      - "traefik.frontend.rule=Host:whoami.traefik.local"
+
+
+networks:
+  reverse-proxy:
+    name: reverse-proxy
+
